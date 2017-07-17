@@ -1,0 +1,80 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Instagram Clone</title>
+    <style>
+        body{
+         background: url("http://marketingland.com/wp-content/ml-loads/2016/05/future-search-ss-1920.jpg");
+          background-size:cover;
+
+        }
+        input{
+        border:0;
+        padding:10px;
+        font-size:18px;
+        }
+        input[type="submit"]{
+          background:red;
+          color:white;
+          }
+          input[type="text"]{
+          background:rgba(255,255,255,0.5)
+
+          }
+          input[type="password"]{
+          background:rgba(255,255,255,0.5)
+          }
+         .area{
+         background:rgba(0,128,128,0.1);
+         padding: 50px;
+         margin: 0 800px 0 200px;
+         }
+         .forlogin{
+         background:rgba(255,255,255,0.2);
+         padding: 20px;
+         margin: 0 800px 0 200px;
+         }
+         .main{
+         color:rgba(0,0,128,0.8);
+         font-family: helvetica, sans-serif,Constantia;
+         text-align:center;
+         text-shadow: 2px 2px rgba(0,0,128,0.2);
+         }
+    </style>
+</head>
+<body >
+	<div class="main">
+            <h1> Insta Clone</h1>
+        <h2>{{today}}</h2>
+    </div>
+
+    <div class="area">
+        <form method="post">
+            {% csrf_token %}
+            <div >
+                <input id="username" type="text" placeholder="Username" name="Enter Username" value={{ username }}>
+            </div><br>
+
+            <div>
+                <input id="name" type="text" placeholder="Enter your Name" name="name" value={{ name }}>
+            </div><br>
+
+            <div>
+                <input id="email" type="text" placeholder="Enter your Email ID" name="email" value={{ email }}>
+            </div><br>
+
+            <div>
+                <input id="password" type="password" placeholder="Enter Password" name="password" value={{ password }}>
+            </div><br>
+                <input type="submit" value="Sign Up">
+        </form>
+
+
+    </div><br><br>
+
+    <div class="forlogin"><h3>Already a user?</h3><a href="login/"><input type="submit" value="Login"></a> </div>
+</body>
+</html>

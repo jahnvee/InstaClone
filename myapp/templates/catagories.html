@@ -5,7 +5,12 @@
     <title>Title</title>
 </head>
 <body>
-<a href="feed.html">General</a>
+
+<a href="feed.html" >
+    {% for post in posts %}
+    {{ post.category }}
+    {% endfor %}
+</a>
 
 </body>
 </html>

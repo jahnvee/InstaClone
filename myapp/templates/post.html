@@ -1,16 +1,17 @@
 {% load staticfiles %}
 
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset = "UTF-8">
     <title></title>
 </head>
 <body>
-    <form method="POST" enctype="multipart/form-data" id="usrform">
+    <form method = "POST" enctype = "multipart/form-data" id = "usrform">
       {% csrf_token %}
         {{ form.as_p }}
-        <input type="submit" class="btn btn-default" value="Add a picture" accept="image">
+        <input type = "submit" class = "btn btn-default"  value = "Add a picture" accept = "image">
     </form>
 </body>
 </html>

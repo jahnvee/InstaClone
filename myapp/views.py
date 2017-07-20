@@ -9,13 +9,14 @@ from django.shortcuts import render, redirect
 from forms import SignUpForm, LoginForm, LikeForm, CommentForm, PostForm
 from models import UserModel, SessionToken, PostModel, LikeModel, CommentModel
 from imgurpython import ImgurClient
-
+from clarifai.rest import ClarifaiApp
+from past.builtins import basestring
 
 
 
 YOUR_CLIENT_ID="cd0d6498059a791"
 YOUR_CLIENT_SECRET="261784d575ae95822cc066a47adb14b353436d40"
-
+app = ClarifaiApp(api_key='bf44b536a5b24b6e818a246e24051bc2')
 
 
 def signup_views(request):
@@ -86,6 +87,11 @@ def post_view(request):
                 client = ImgurClient(YOUR_CLIENT_ID, YOUR_CLIENT_SECRET)
                 post.image_url = client.upload_from_path(path, anon=True)['link']
                 post.save()
+                model = app.models.get('general-v1.3')
+                response = model.predict_by_url(url=post.image_url)
+                category = response["outputs"][0]["data"]["concepts"][0]["name"]
+                post.category = category
+                post.save()
                 return redirect('/feed/')
         else:
             return redirect('/login/')
@@ -136,3 +142,6 @@ def comment_view(request):
             return redirect('/feed/')
     else:
         return redirect('/login')
+
+
+

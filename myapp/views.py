@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
 import os
 
 from Project3.settings import BASE_DIR
@@ -10,15 +9,14 @@ from forms import SignUpForm, LoginForm, LikeForm, CommentForm, PostForm, Catego
 from models import UserModel, SessionToken, PostModel, LikeModel, CommentModel
 from imgurpython import ImgurClient
 from clarifai.rest import ClarifaiApp
+from myapp.data import YOUR_CLIENT_ID, YOUR_CLIENT_SECRET, app
 from past.builtins import basestring
 import sendgrid
 from sendgrid.helpers.mail import *
 
 
-YOUR_CLIENT_ID="cd0d6498059a791"
-YOUR_CLIENT_SECRET="261784d575ae95822cc066a47adb14b353436d40"
-app = ClarifaiApp(api_key='bf44b536a5b24b6e818a246e24051bc2')
-sg_key="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"
+
+
 
 def signup_views(request):
     if request.method == 'GET':
@@ -32,19 +30,19 @@ def signup_views(request):
             password = form.cleaned_data['password']
             user = UserModel(name=name, password=make_password(password), email=email, username=username)
             user.save()
-            # sg = sendgrid.SendGridAPIClient(apikey=sg_key)
+            # sg = sendgrid.SendGridAPIClient(apikey=(sg_key))
             # from_email = Email("jahnveesharma@gmail.com")
-            # to_email = Email(user.email)
-            # subject = "Sending with SendGrid is Fun"
-            # content = Content("text/plain", "and easy to do anywhere, even with Python")
+            # to_email = Email(email)
+            # subject = "SignUp to InstaClone"
+            # content = Content("text/plain", "You have been Successfully registered on InstaClone")
             # mail = Mail(from_email, subject, to_email, content)
             # response = sg.client.mail.send.post(request_body=mail.get())
             # print(response.status_code)
             # print(response.body)
             # print(response.headers)
-            return render(request, 'success.html')
-    return render(request, 'index.html', {'form': form})
+            # return redirect("/login/")
 
+    return render(request, 'index.html', {'form': form})
 
 def login_view(request):
     if request.method == "POST":

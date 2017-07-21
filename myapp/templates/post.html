@@ -8,7 +8,7 @@
     <title></title>
 </head>
 <body>
-    <form method = "POST" enctype = "multipart/form-data" id = "usrform">
+    <form method = "POST" enctype = "multipart/form-data" id = "userform">
       {% csrf_token %}
         {{ form.as_p }}
         <input type = "submit" class = "btn btn-default"  value = "Add a picture" accept = "image">

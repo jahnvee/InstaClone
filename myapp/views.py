@@ -6,18 +6,19 @@ import os
 from Project3.settings import BASE_DIR
 from django.contrib.auth.hashers import make_password, check_password
 from django.shortcuts import render, redirect
-from forms import SignUpForm, LoginForm, LikeForm, CommentForm, PostForm
+from forms import SignUpForm, LoginForm, LikeForm, CommentForm, PostForm, CategoryForm
 from models import UserModel, SessionToken, PostModel, LikeModel, CommentModel
 from imgurpython import ImgurClient
 from clarifai.rest import ClarifaiApp
 from past.builtins import basestring
-
+import sendgrid
+from sendgrid.helpers.mail import *
 
 
 YOUR_CLIENT_ID="cd0d6498059a791"
 YOUR_CLIENT_SECRET="261784d575ae95822cc066a47adb14b353436d40"
 app = ClarifaiApp(api_key='bf44b536a5b24b6e818a246e24051bc2')
-
+sg_key="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"
 
 def signup_views(request):
     if request.method == 'GET':
@@ -31,6 +32,16 @@ def signup_views(request):
             password = form.cleaned_data['password']
             user = UserModel(name=name, password=make_password(password), email=email, username=username)
             user.save()
+            # sg = sendgrid.SendGridAPIClient(apikey=sg_key)
+            # from_email = Email("jahnveesharma@gmail.com")
+            # to_email = Email(user.email)
+            # subject = "Sending with SendGrid is Fun"
+            # content = Content("text/plain", "and easy to do anywhere, even with Python")
+            # mail = Mail(from_email, subject, to_email, content)
+            # response = sg.client.mail.send.post(request_body=mail.get())
+            # print(response.status_code)
+            # print(response.body)
+            # print(response.headers)
             return render(request, 'success.html')
     return render(request, 'index.html', {'form': form})
 
@@ -105,11 +116,10 @@ def feed_view(request):
                 existing_like = LikeModel.objects.filter(post_id=post.id, user=user).first()
                 if existing_like:
                     post.has_liked = True
-
             return render(request, 'feed.html', {'posts': posts})
-     else:
 
-         return redirect('/login/')
+     else:
+        return redirect('/login/')
 
 
 def like_view(request):
@@ -143,5 +153,30 @@ def comment_view(request):
     else:
         return redirect('/login')
 
+def category_view(request):
+    user = check_validation(request)
+
+    if user and request.method=="GET":
+        posts = PostModel.objects.all().order_by('created_on')
+        return render(request, 'categories.html', {'posts': posts})
+    elif request.method=="POST":
+        form=CategoryForm(request.POST)
+        if form.is_valid():
+            category = form.cleaned_data.get('category')
+            posts = PostModel.objects.filter(category=category)
+            return render(request, 'feed.html', {'posts': posts})
+
+        else:
+            return redirect('/feed/')
+
+    return redirect('/login/')
 
 
+def logout_view(request):
+    user = check_validation(request)
+    if user:
+        token = SessionToken(user=user)
+        token.delete()
+        return redirect('/login/')
+    else:
+        return redirect('/index/')

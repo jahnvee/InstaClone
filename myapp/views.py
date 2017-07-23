@@ -5,6 +5,8 @@ import os
 from Project3.settings import BASE_DIR #import base path
 from django.contrib.auth.hashers import make_password, check_password  #make_password to convert password in hash code
 # check_password to compare the entered password and hashed password from database
+from django.http import HttpResponseRedirect
+from django.contrib.auth import logout
 from django.shortcuts import render, redirect #render to send only data and redirect to completly switching to redirected page
 from forms import SignUpForm, LoginForm, LikeForm, CommentForm, PostForm, CategoryForm
 from models import UserModel, SessionToken, PostModel, LikeModel, CommentModel
@@ -14,8 +16,8 @@ from myapp.data import YOUR_CLIENT_ID, YOUR_CLIENT_SECRET, app
 from past.builtins import basestring
 import sendgrid
 from sendgrid.helpers.mail import *
+from sgkey import sg_key
 
-sg_key="Your SendGrid Key"
 
 
 #view function for the user signup page
@@ -134,7 +136,21 @@ def like_view(request):
             post_id = form.cleaned_data.get('post').id
             existing_like = LikeModel.objects.filter(post_id=post_id, user=user).first()
             if not existing_like: #if post is not liked by current user
-                LikeModel.objects.create(post_id=post_id, user=user)
+                like=LikeModel.objects.create(post_id=post_id, user=user)
+
+                post=PostModel.objects.get(id=post_id)
+                email_id=post.user.email
+                sg = sendgrid.SendGridAPIClient(apikey=(sg_key))
+                from_email = Email("jahnveesharma@gmail.com")
+                to_email = Email(email_id)
+                subject ="Like on Post"
+                text=like.user.username+" liked your post!"
+                content = Content("text/plain", text)
+                mail = Mail(from_email, subject, to_email, content)
+                response = sg.client.mail.send.post(request_body=mail.get())
+                print(response.status_code)
+                print(response.body)
+                print(response.headers)
             else:
                 existing_like.delete()  #unlike post
             return redirect('/feed/')
@@ -142,35 +158,36 @@ def like_view(request):
         return redirect('/login/')
 
 
-#view function
+#view function to comment on post
 def comment_view(request):
     user = check_validation(request)
     if user and request.method=='POST':
         form = CommentForm(request.POST)
         if form.is_valid():
-            post_id=form.cleaned_data.get('post').id
-            comment_text = form.cleaned_data.get('comment_text')
+            post_id=form.cleaned_data.get('post').id #takes id of post on which user has commented
+            comment_text = form.cleaned_data.get('comment_text')  #takes comment text as input
             comment = CommentModel.objects.create(user=user, post_id=post_id, comment_text=comment_text)
-            comment.save()
+            comment.save()  #save comment on the model
             return redirect('/feed/')
         else:
             return redirect('/feed/')
     else:
         return redirect('/login')
 
+
+#view function to view post of particular category
 def category_view(request):
     user = check_validation(request)
 
     if user and request.method=="GET":
-        posts = PostModel.objects.all().order_by('created_on')
+        posts = PostModel.objects.all().order_by('created_on') #pass all images data when categories are to be displayed
         return render(request, 'categories.html', {'posts': posts})
     elif request.method=="POST":
         form=CategoryForm(request.POST)
         if form.is_valid():
             category = form.cleaned_data.get('category')
-            posts = PostModel.objects.filter(category=category)
+            posts = PostModel.objects.filter(category=category) #select only those post which have same category as selected by user
             return render(request, 'feed.html', {'posts': posts})
-
         else:
             return redirect('/feed/')
 
@@ -178,10 +195,6 @@ def category_view(request):
 
 
 def logout_view(request):
-    user = check_validation(request)
-    if user:
-        token = SessionToken(user=user)
-        token.delete()
-        return redirect('/login/')
-    else:
-        return redirect('/index/')
+        logout(request)
+        return HttpResponseRedirect('/login/')
+

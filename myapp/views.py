@@ -38,7 +38,7 @@ def signup_views(request):
             user = UserModel(name=name, password=make_password(password), email=email, username=username) #enter the above data to database model
             user.save()#save the data in model
             sg = sendgrid.SendGridAPIClient(apikey=(sg_key))
-            from_email = Email("jahnveesharma@gmail.com")
+            from_email = Email("your email_id")
             to_email = Email(email)
             subject = "SignUp to InstaClone"
             content = Content("text/plain", "You have been Successfully registered on InstaClone")
@@ -170,7 +170,7 @@ def like_view(request):
                 post=PostModel.objects.get(id=post_id)
                 email_id=post.user.email
                 sg = sendgrid.SendGridAPIClient(apikey=(sg_key))
-                from_email = Email("jahnveesharma@gmail.com")
+                from_email = Email("your email id")
                 to_email = Email(email_id)
                 subject ="Like on Post"
                 text=like.user.username+" liked your post!"
@@ -220,7 +220,7 @@ def comment_view(request):
             comments = PostModel.objects.get(id=post_id)
             email_id = comments.user.email
             sg = sendgrid.SendGridAPIClient(apikey=(sg_key))
-            from_email = Email("jahnveesharma@gmail.com")
+            from_email = Email("your email id")
             to_email = Email(email_id)
             subject = "Comment on Post"
             text = comment.user.username + " added a comment on your post!"

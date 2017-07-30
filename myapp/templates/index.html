@@ -62,7 +62,7 @@
         <form method="POST">
             {% csrf_token %}
             <div >
-                <input id="username" type="text" placeholder="Username" name="username" value={{ username }}>
+                <input id="username" type="text" placeholder="Username" pattern="[A-Za-z0-9_]{1,15}" title="username should Only contain letters (either case), numbers, and the underscore; no more than 15 characters." name="username" value={{ username }}>
             </div><br>
 
             <div>
@@ -70,11 +70,11 @@
             </div><br>
 
             <div>
-                <input id="email" type="text" placeholder="Enter your Email ID" name="email" value={{ email }}>
+                <input id="email" type="text" placeholder="Enter your Email ID" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$" title="please enter a valid email id" name="email" value={{ email }} >
             </div><br>
 
             <div>
-                <input id="password" type="password" placeholder="Enter Password" name="password" value={{ password }}>
+                <input id="password" type="password" placeholder="Enter Password" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" title="Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters" name="password" value={{ password }} >
             </div><br>
             <div>
                 <input type="submit" value="Sign Up">

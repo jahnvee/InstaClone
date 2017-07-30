@@ -1,1 +1,1 @@
-sg_key="your sendgrid key"
+sg_key=""

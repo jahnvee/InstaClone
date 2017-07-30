@@ -7,18 +7,21 @@ from django.contrib.auth.hashers import make_password, check_password  #make_pas
 # check_password to compare the entered password and hashed password from database
 from django.http import HttpResponseRedirect
 from django.contrib.auth import logout
-from django.shortcuts import render, redirect #render to send only data and redirect to completly switching to redirected page
-from forms import SignUpForm, LoginForm, LikeForm, CommentForm, PostForm, CategoryForm
-from models import UserModel, SessionToken, PostModel, LikeModel, CommentModel
+from django.shortcuts import render, redirect, \
+    render_to_response  # render to send only data and redirect to completly switching to redirected page
+from django.template import RequestContext
+from forms import SignUpForm, LoginForm, LikeForm, CommentForm, PostForm, CategoryForm,SearchUserForm,UpvoteForm
+from models import UserModel, SessionToken, PostModel, LikeModel, CommentModel, UpvoteModel
 from imgurpython import ImgurClient
 from clarifai.rest import ClarifaiApp
 from myapp.data import YOUR_CLIENT_ID, YOUR_CLIENT_SECRET, app
 from past.builtins import basestring
 import sendgrid
 from sendgrid.helpers.mail import *
-from sgkey import sg_key
+#from sgkey import sg_key
 
 
+sg_key="your sendgrid key"
 
 #view function for the user signup page
 def signup_views(request):
@@ -81,7 +84,8 @@ def check_validation(request):
     if session:
       return session.user
   else:
-    return None
+      print "return nothing"
+      return None
 
 
 #view function to make a post by user
@@ -121,11 +125,36 @@ def feed_view(request):
                 existing_like = LikeModel.objects.filter(post_id=post.id, user=user).first() #check for the likes on post
                 if existing_like:
                     post.has_liked = True
-            return render(request, 'feed.html', {'posts': posts})
+                comments = CommentModel.objects.filter(post_id=post.id)
+                for comment in comments:
+                    existing_upvote = UpvoteModel.objects.filter(user=user, comment_id=comment.id ).first()
+                    if existing_upvote:
+                        comment.has_upvoted = True
 
+            return render(request, 'feed.html', {'posts': posts,'comments':comments})
      else:
         return redirect('/login/')
 
+
+
+def search_view(request):
+    user=check_validation(request)
+    if user and request.method=="GET":
+        form=SearchUserForm()
+        return render(request, 'search.html', {'form': form})
+    elif request.method == "POST":
+        form = SearchUserForm(data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            posts = PostModel.objects.filter(user__username=username)
+            return render(request, 'feed.html', {'posts': posts})
+    return redirect('/login/')
+
+
+
+def search_user_view(request,username):
+    posts = PostModel.objects.filter(user__username=username)
+    return render(request, 'feed.html', {'posts': posts})
 
 #view function to like a post
 def like_view(request):
@@ -158,7 +187,26 @@ def like_view(request):
         return redirect('/login/')
 
 
-#view function to comment on post
+def upvote_view(request):
+     user = check_validation(request)
+     if request.method == 'POST':
+         form = UpvoteForm(request.POST)
+         if form.is_valid():
+             comment_id = form.cleaned_data.get('comment').id
+             existing_upvote = UpvoteModel.objects.filter(comment_id=comment_id, user=user).first()
+             if not existing_upvote:  # if comment is not upvoted by current user
+                 UpvoteModel.objects.create(comment_id=comment_id, user=user)
+             else:
+                 existing_upvote.delete()  # devote comment
+             return redirect('/feed/')
+         else:
+             return redirect('/login/')
+     else:
+         return redirect('/login/')
+     #return redirect('/index/')
+
+
+# view function to comment on post
 def comment_view(request):
     user = check_validation(request)
     if user and request.method=='POST':
@@ -167,8 +215,23 @@ def comment_view(request):
             post_id=form.cleaned_data.get('post').id #takes id of post on which user has commented
             comment_text = form.cleaned_data.get('comment_text')  #takes comment text as input
             comment = CommentModel.objects.create(user=user, post_id=post_id, comment_text=comment_text)
-            comment.save()  #save comment on the model
+            comment.save() #save comment on the model
+
+            comments = PostModel.objects.get(id=post_id)
+            email_id = comments.user.email
+            sg = sendgrid.SendGridAPIClient(apikey=(sg_key))
+            from_email = Email("jahnveesharma@gmail.com")
+            to_email = Email(email_id)
+            subject = "Comment on Post"
+            text = comment.user.username + " added a comment on your post!"
+            content = Content("text/plain", text)
+            mail = Mail(from_email, subject, to_email, content)
+            response = sg.client.mail.send.post(request_body=mail.get())
+            print(response.status_code)
+            print(response.body)
+            print(response.headers)
             return redirect('/feed/')
+
         else:
             return redirect('/feed/')
     else:

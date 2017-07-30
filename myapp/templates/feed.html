@@ -8,21 +8,22 @@
 </head>
 <body>
 
-        <a href="post/"><input type="submit" value="Post"></a>
-        <a href="categories/"><input type="submit" value="Search by category"></a>
-        <a href="Logout/">logout</a>
+
+            <a href="post/"><input type="submit" value="Post"></a>
+            <a href="categories/"><input type="submit" value="Search by category"></a>
+            <a href="Logout/"><input type="button" value="Logout"></a><br>
+            <a href="search/"><input type="button" value="Search By User" ></a>
+
+
        {% for post in posts %}
-
-
-        <h3> Posted by: {{ post.user.username }} </h3>
-        <p>[{{ post.created_on }}]</p>
-        <img style="display:inline-block; width:350px; height:300px;"
-             src="{{ post.image_url }}" /><br>
-        <span  style="display:inline-block;">{{ post.caption }}</span><br/><br/>
-        <div style="display:inline-block">
+            <h3> Posted by: {{ post.user.username }} </h3>
+             <p>[{{ post.created_on }}]</p>
+             <img style="display:inline-block; width:350px; height:300px;" src="{{ post.image_url }}" /><br>
+              <span  style="display:inline-block;">{{ post.caption }}</span><br/><br/>
+            <div style="display:inline-block">
             {{ post.like_count }} likes this
-        </div>
-        <div style="display:inline-block">
+           </div>
+             <div style="display:inline-block">
             <form method="POST" action="/like/">
               {% csrf_token %}
               <input type="hidden" name="post" value="{{ post.id }}" />
@@ -45,10 +46,25 @@
         </div>
 
         <div>
-            {% for comment in post.comments %}
-                <p><b>{{ comment.user.username }} [{{ comment.created_on }}]:</b> {{ comment.comment_text }}</p>
+
+            {% for comment in comments %}
+            <p> <b>{{ comment.user.username }} [{{ comment.created_on }}]:</b> {{ comment.comment_text }}</p>
+                {{ comment.upvote_count }} user upvoted this comment
+              <form method="POST" action="/upvote/">
+              {% csrf_token %}
+                <input type="hidden" name="comment" value="{{ comment.id }}" />
+                {% if comment.has_upvoted %}
+                <input type="submit" class="btn btn-default" value="Upvoted">
+                {% else %}
+                <input type="submit" class="btn btn-default" value="Upvote">
+                {% endif %}
+            </form>
             {% endfor %}
+
+
+
         </div>
+
 
     {% endfor %}
 

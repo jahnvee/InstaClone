@@ -57,5 +57,15 @@ class CommentModel(models.Model):
     comment_text = models.CharField(max_length=555)
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
+    has_upvoted = False
+
+    @property
+    def upvote_count(self):
+        return len(UpvoteModel.objects.filter(comment=self))
 
 
+class UpvoteModel(models.Model):
+    user = models.ForeignKey(UserModel)
+    comment = models.ForeignKey(CommentModel)
+    created_on = models.DateTimeField(auto_now_add=True)
+    updated_on = models.DateTimeField(auto_now=True)
